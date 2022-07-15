@@ -1,0 +1,202 @@
+##################################################################
+#        Dependency of SNRs onto informative parameters          #
+##################################################################
+
+  ##################################################################
+  #           Import data samples & required libraries             #
+  ##################################################################
+
+  # Import libraries
+#import plotly.graph_objects as go
+#from chart_studio import plotly
+#import plotly.offline as pyoff
+#import plotly.graph_objs as go
+#import corner
+import pandas as pd
+import numpy as np
+from math import e
+from math import log
+import matplotlib.pyplot as plt
+%matplotlib inline
+from numpy import log as ln
+#from arviz import az
+import seaborn as sns
+from scipy import stats
+import scipy.stats as stats
+#from sklearn.metrics import r2_score 
+import matplotlib
+import matplotlib.pyplot as plt
+from math import cos
+import statistics 
+
+  ##################################################################
+  #           data reading and Normalization over mass         #
+  ##################################################################
+
+ df = pd.DataFrame(pd.read_csv('/home/waqas/LISA_GWDA/results file/final_logs_221.csv'))
+ df.head()
+ SNR_norm= (df.logmu)**-1 * df.SNR
+ SNR_norm= ln(SNR_norm)
+
+  ##################################################################
+  #               Individual parametric plots              #
+  ##################################################################
+
+  # CO logarithmic mass versus SNR
+ ln_CO=ln(df.logmu)
+ t1=sns.jointplot(data=df, x=ln_CO, y=SNR_norm, kind="reg", marginal_kws=dict(bins=90, color="black"),
+                scatter_kws={"s": 1,"alpha":.2,'color': 'grey'},
+                line_kws={'color': 'red', 'lw':1}).set_axis_labels("(a)     Logarithmic Mass of CO log $(\u00B5/M_\odot)$", "Logarithmic SNR log (\u03C1)", fontsize=16)
+t1.fig.set_size_inches(8,8)
+plt.legend(labels=['R-squared = 0.011', 'p-value = 0'],loc = 1, bbox_to_anchor = (-3.7,1))
+
+slope, intercept, r_value, p_value, std_err = stats.linregress(ln_CO, SNR_norm)
+print(p_value, r_value**2, slope, intercept, std_err)
+
+  # Initial orbital freq of CO versus SNR
+ t1=sns.jointplot(data=df, x=df.lognuz, y=SNR_norm, kind="reg", marginal_kws=dict(bins=90, color="black"),
+                scatter_kws={"s": 1,"alpha":.2,'color': 'grey'},
+                line_kws={'color': 'red', 'lw':1}).set_axis_labels("(b)     Initial orbital frequency $(\u03BD_o)$", "Logarithmic SNR log(\u03C1)", fontsize=16)
+t1.fig.set_size_inches(8,8)
+plt.legend(labels=['R-squared = 0.762', 'p-value = 0.00'],loc = 1, bbox_to_anchor = (-3.7,1))
+
+slope, intercept, r_value, p_value, std_err = stats.linregress(df.lognuz, SNR_norm)
+print(p_value, r_value**2, slope, intercept, std_err)
+
+  # Initial eccentricity versus SNR
+ t1=sns.jointplot(data=df, x=df.ez, y=SNR_norm, kind="reg", marginal_kws=dict(bins=90, color="black"),
+                scatter_kws={"s": 1,"alpha":.2,'color': 'grey'},
+                line_kws={'color': 'red', 'lw':1}).set_axis_labels("(c)     Initial eccentricity $e_\u03BF$", "Logarithmic SNR log(\u03C1)", fontsize=16)
+t1.fig.set_size_inches(8,8)
+plt.legend(labels=['R-squared = 0.00210', 'p-value = 7.28e-57'],loc = 1, bbox_to_anchor = (-3.7,1))
+
+slope, intercept, r_value, p_value, std_err = stats.linregress(df.ez, SNR_norm)
+print(p_value, r_value**2, slope, intercept, std_err)
+
+  # Spin of MBH versus SNR
+  t1=sns.jointplot(data=df, x=df.SMBHSpin, y=SNR_norm, kind="reg", marginal_kws=dict(bins=90, color="black"),
+                scatter_kws={"s": 1,"alpha":.2,'color': 'grey'},
+                line_kws={'color': 'red', 'lw':1}).set_axis_labels("(e)     Spin of MBH $\hat{a}$", "Logarithmic SNR log(\u03C1)", fontsize=16)
+t1.fig.set_size_inches(8,8)
+plt.legend(labels=['R-squared = 4.58e-06', 'p-value = 0.458'],loc = 1, bbox_to_anchor = (-3.7,1))
+
+slope, intercept, r_value, p_value, std_err = stats.linregress(df.SMBHSpin, SNR_norm)
+print(p_value, r_value**2, slope, intercept, std_err)
+
+  # Initial Azimuthal angel of SMBH Spin versus SNR
+ t1=sns.jointplot(data=df, x=df.thetaSpin, y=SNR_norm, kind="reg", marginal_kws=dict(bins=90, color="black"),
+                scatter_kws={"s": 1,"alpha":.2,'color': 'grey'},
+                line_kws={'color': 'red', 'lw':1}).set_axis_labels("(g)     Azimuthal angle of MBH Spin  $\u03F4_k$", "Logarithmic SNR  log(\u03C1)", fontsize=16)
+t1.fig.set_size_inches(8,8)
+plt.legend(labels=['R-squared = 2.57e-07', 'p-value = 0.8605'],loc = 1, bbox_to_anchor = (-3.7,1))
+
+slope, intercept, r_value, p_value, std_err = stats.linregress(df.thetaSpin, SNR_norm)
+print(p_value, r_value**2, slope, intercept, std_err)
+
+
+
+  # Polar Angel of SMBH Spin versus SNR
+
+t1=sns.jointplot(data=df, x=df.phiSpin, y=SNR_norm, kind="reg", marginal_kws=dict(bins=90, color="black"),
+                scatter_kws={"s": 1,"alpha":.2,'color': 'grey'},
+                line_kws={'color': 'red', 'lw':1}).set_axis_labels("(j)     Polar angle of MBH Spin  $\u03C6_k$", "Logarithmic SNR log(\u03C1)", fontsize=16)
+t1.fig.set_size_inches(8,8)
+plt.legend(labels=['R-squared = 0.000116', 'p-value = 0.00019'],loc = 1, bbox_to_anchor = (-3.7,1)) 
+
+slope, intercept, r_value, p_value, std_err = stats.linregress(df.phiSpin, SNR_norm)
+print(p_value, r_value**2, slope, intercept, std_err)
+
+
+
+
+
+  # Cosine of Orbital inclination versus SNR
+o_inc= np.cos(df.Lambda)
+t1=sns.jointplot(data=df, x=o_inc, y=SNR_norm, kind="reg", marginal_kws=dict(bins=90, color="black"),
+                scatter_kws={"s": 1,"alpha":.2,'color': 'grey'},
+                line_kws={'color': 'red', 'lw':1}).set_axis_labels("(d)     Cosine of Orbital Inclination Cos(i) ", "Logarithmic SNR log (\u03C1)", fontsize=16)
+t1.fig.set_size_inches(8,8)
+plt.legend(labels=['R-squared =2.03e-05', 'p-value = 0.11894'],loc = 1, bbox_to_anchor = (-3.7,1))
+
+slope, intercept, r_value, p_value, std_err = stats.linregress(df.o_inc, SNR_norm)
+print(p_value, r_value**2, slope, intercept, std_err)
+
+
+
+  # Initial direction of pericenter vs SNR
+
+t1=sns.jointplot(data=df, x=df.gamz, y=SNR_norm, kind="reg", marginal_kws=dict(bins=90, color="black"),
+                scatter_kws={"s": 1,"alpha":.2,'color': 'grey'},
+                line_kws={'color': 'red', 'lw':1}).set_axis_labels("(i)     Initial Direction of Pericenter $\u03B3_o$ ", "Logarithmic SNR log(\u03C1)", fontsize=16)
+t1.fig.set_size_inches(8,8)
+plt.legend(labels=['R-squared =6.89e-06', 'p-value = 0.363'],loc = 1, bbox_to_anchor = (-3.7,1))
+
+slope, intercept, r_value, p_value, std_err = stats.linregress(df.gamz, SNR_norm)
+print(p_value, r_value**2, slope, intercept, std_err)
+
+
+
+
+  #   Initial Azimuthal Angel of Orbital Angular Momentum versus SNR
+ t1=sns.jointplot(data=df, x=df.alpz, y=SNR_norm, kind="reg", marginal_kws=dict(bins=90, color="black"),
+                scatter_kws={"s": 1,"alpha":.2,'color': 'grey'},
+                line_kws={'color': 'red', 'lw':1}).set_axis_labels("(f)     Initial Azimuthal Angel of Orbital Angular Momentum $\u03B1_o$", "Logarithmic SNR log(\u03C1)", fontsize=16)
+t1.fig.set_size_inches(8,8)
+plt.legend(labels=['R-squared = 8.95e-07', 'p-value = 0.743'],loc = 1, bbox_to_anchor = (-3.7,1))
+
+slope, intercept, r_value, p_value, std_err = stats.linregress(df.alpz, SNR_norm)
+print(p_value, r_value**2, slope, intercept, std_err)
+
+
+
+  #  Initial Polar Orbital Phase Angel versus SNR
+  t1=sns.jointplot(data=df, x=df.phiz, y=SNR_norm, kind="reg", marginal_kws=dict(bins=90, color="black"),
+                scatter_kws={"s": 1,"alpha":.2,'color': 'grey'},
+                line_kws={'color': 'red', 'lw':1}).set_axis_labels("(h)     Initial Polar Orbital Phase Angel $\u03C6_o$ ", "Logarithmic SNR log(\u03C1)", fontsize=16)
+t1.fig.set_size_inches(8,8)
+plt.legend(labels=['R-squared = 7.65e-07', 'p-value = 0.7621'],loc = 1, bbox_to_anchor = (-3.7,1))
+
+slope, intercept, r_value, p_value, std_err = stats.linregress(df.phiz, SNR_norm)
+print(p_value, r_value**2, slope, intercept, std_err)
+
+
+ 
+
+
+  ##################################################################
+  #    Correlation Heat map and histograms of Eventrates                     #
+  ##################################################################
+
+
+  plt.figure(figsize = (15, 10))
+  c = df.corr()
+  sns.heatmap(c, cmap = "BrBG", annot = True)
+  plt.title("Correlation Matrix")
+  plt.show()
+
+
+x=  df.SNR
+
+plt.figure(figsize = (20, 8))
+plt.hist(x, bins=60,density=False,edgecolor='white')
+plt.xlabel('SNR ($\u03C1$) ',fontsize = 20)
+plt.ylabel('Frequency per bin',fontsize = 20)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.grid(False)
+
+plt.show()
+
+
+s = np.random.poisson(9.39, 1000)
+plt.figure(figsize = (15, 8))
+count, bins, ignored = plt.hist(s,15 , density=False,edgecolor='white')
+plt.xlabel(' Events ',fontsize = 20)
+plt.ylabel('Frequency',fontsize = 20)
+plt.xticks(fontsize=18)
+plt.yticks(fontsize=18)
+plt.grid(False)
+plt.show()
+ 
+
+ 
