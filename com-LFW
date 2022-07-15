@@ -1,0 +1,17 @@
+/home/waqas/anaconda3/
+
+# we need to make sure mpi-selector has run
+. /opt/openmpi-1.4.1/etc/mpivars.sh
+
+mpicc -g LISA_LFW.c -o LISA_LFW	\
+	-O3 -fno-fast-math 		\
+    -I ${HOME}/csoft/fftw/api \
+    -I ${HOME}/software/randlib \
+    -I ${HOME}/software/lisaXML-IO \
+    ${HOME}/software/randlib/com.c ${HOME}/software/randlib/linpack.c ${HOME}/software/randlib/randlib.c \
+    ${HOME}/software/lisaXML-IO/ezxml.c ${HOME}/software/lisaXML-IO/lisaxml.c ${HOME}/software/lisaXML-IO/readxml.c ${HOME}/software/lisaXML-IO/xmlbinary.c \
+    -lfftw3 -lm \
+    -L/opt/fftw-3.2/lib \
+    &&
+    mpirun -np 2 ./LISA_LFW 
+    #mpirun --mca btl tcp,self -np 2 ./LISA_LFW 
