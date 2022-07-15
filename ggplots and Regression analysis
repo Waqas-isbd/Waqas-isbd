@@ -1,0 +1,407 @@
+##################################################################
+#        Dependency of SNRs onto informative parameters          #
+##################################################################
+
+  ##################################################################
+  #           Import data samples & required libraries             #
+  ##################################################################
+
+  # Import libraries
+  library(readODS)
+  # checking directory
+  getwd()
+  ls()
+  # Set path
+  setwd("/home/waqas/SNR1/")
+  # Import .ods file
+  snr <- as.data.frame(read_ods("/home/waqas/SNR1/SNR.ods", sheet = 1, col_names = TRUE, col_types = NULL, skip = 0))
+  # Required libraries
+  library(ggExtra)
+  library(ggplot2)
+  library(dplyr)
+  library(gridExtra)
+  library(devtools)
+  library(ggpubr)
+  library(cowplot)
+  library(GGally)
+  library(car)
+  library(coefplot)
+  library(MCMCpack)
+
+  ##################################################################
+  #           Identify exclude the outlier SNR samples             #
+  ##################################################################
+
+  boxplot(log(snr$SNR), horizontal = T)
+  hist(log(snr$SNR))
+
+  ##################################################################
+  #               Individual scatter parametric plots              #
+  ##################################################################
+
+  # Initial Orbital Frequency versus SNR
+  plot_center1 = ggplot(snr, aes(x=snr$`Initial Orbital Frequency`,y=log(snr$`SNR`))) + 
+  ylim(11, 14.5) +
+  annotation_logticks() +
+  stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2", bins=15) +
+  scale_fill_continuous() +
+  scale_alpha() + 
+  geom_point(col = "black", size = 0.5, pch = 20, alpha = 0.3) +
+  geom_smooth(method="auto", se = TRUE, col = "red", size = 0.3) +
+  geom_vline(xintercept = mean(snr$`Initial Orbital Frequency`), lty=2) +
+  stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), label.x.npc = "left", label.y.npc = "top" ) +
+  labs(y = expression(Logarithmic~SNR~(ln~rho)), x = expression(Initial~Orbital~frequency~(nu[omicron])), title = "Initial Orbital Frequency versus SNR") +
+  theme_classic() + theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+  p1 <- ggMarginal(plot_center1, type = "histogram", bins = 90, margins = "both", fill= "black", col = "white" )
+print(p1)
+  # Logarithmic Mass of CO versus SNR
+  plot_center2 = ggplot(snr, aes(y=log(snr$`SNR`),x=log(snr$`Mass of CO`))) +
+  ylim(11, 14.5) +
+  annotation_logticks() +
+  stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2" , bins=15) +
+  scale_fill_continuous() +
+  scale_alpha() +
+  geom_point(col = "black", size = 0.5, pch = 20, alpha = 0.3) +
+  geom_smooth(method="auto", se = TRUE, col = "red", size = 0.3) +
+  geom_vline(xintercept = mean(log(snr$`Mass of CO`)), lty=2) +
+  stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), label.x.npc = "left", label.y.npc = "top") +
+  labs(y =expression(logarithmic~SNR~(ln~rho)), x = expression(logarithmic~Mass~of~CO~(ln~over(mu, M['\u0298']))), title = "Logarithmic Mass of CO versus SNR") +
+  theme_classic() + theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+  p2 <- ggMarginal(plot_center2, type = "histogram", bins = 90, margins = "both", fill= "black", col = "white" )
+
+  # Initial eccentricity versus SNR
+  plot_center3 = ggplot(snr, aes(y=log(snr$`SNR`),x=snr$Eccentricity)) +
+  ylim(11, 14.5) +
+  annotation_logticks() +
+  stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2", bins=15) +
+  scale_fill_continuous() +
+  scale_alpha() +
+  geom_point(col = "black", size = 0.5, pch = 20, alpha = 0.3) +
+  geom_smooth(method="auto", se = TRUE, col = "red", size = 0.3) +
+  geom_vline(xintercept = mean(snr$Eccentricity), lty=2) +
+  stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), label.x.npc = "left", label.y.npc = "top") +
+  labs(y = expression(Logarithmic~SNR~(ln~rho)), x = expression(Initial~Eccentricity~(e[omicron])), title = "Initial eccentricity versus SNR") +
+  theme_classic() + theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+  p3 <- ggMarginal(plot_center3, type = "histogram", bins = 90, margins = "both", fill= "black", col = "white")
+
+  # Initial Direction of Pericenter versus SNR
+  plot_center4 = ggplot(snr, aes(y=log(snr$`SNR`),x=snr$`Initial Tilde Gamma`)) +
+  ylim(11, 14.5) +
+  annotation_logticks() +
+  stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2", bins=15) +
+  scale_fill_continuous() +
+  scale_alpha() +
+  geom_point(col = "black", size = 0.5, pch = 20, alpha = 0.3) + 
+  geom_smooth(method="auto", se = TRUE, col = "red", size = 0.3) +
+  geom_vline(xintercept = mean(snr$`Initial Tilde Gamma`), lty=2) +
+  stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), label.x.npc = "left", label.y.npc = "top") +
+  labs(y =expression(Logarithmic~SNR~(ln~rho)), x = expression(Initial~Direction~of~Pericenter~(tilde(gamma[omicron]))), title = "Initial Direction of Pericenter versus SNR") +
+  theme_classic() + theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+  p4 <- ggMarginal(plot_center4, type = "histogram", bins = 90, margins = "both", fill= "black", col = "white")
+
+  # Initial Azimuthal Orbital Phase versus SNR
+  plot_center5 = ggplot(snr, aes(y=log(snr$`SNR`),x=snr$`Initial Azimuthal Orbital Phase`)) +
+  ylim(11, 14.5) +
+  annotation_logticks() +
+  stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2", bins=15) +
+  scale_fill_continuous() + 
+  scale_alpha() +
+  geom_point(col = "black", size = 0.5, pch = 20, alpha = 0.3) + 
+  geom_smooth(method="auto", se = TRUE, col = "red", size = 0.3) +
+  geom_vline(xintercept = mean(snr$`Initial Azimuthal Orbital Phase`), lty=2) +
+  stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), label.x.npc = "left", label.y.npc = "top") +
+  labs(y =expression(Logarithmic~SNR~(ln~rho)), x = expression(Initial~Azimuthal~Orbital~Phase~Angle~(Phi[omicron])), title = "Initial Azimuthal Orbital Phase versus SNR") +
+  theme_classic() +   theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+  p5 <- ggMarginal(plot_center5, type = "histogram", bins = 90, margins = "both", fill= "black", col = "white")
+
+  # Cosine of Orbital Inclination Angle versus SNR
+  plot_center6 = ggplot(snr, aes(y=log(snr$`SNR`),x=cos(snr$Lambda))) +
+  ylim(11, 14.5) +
+  annotation_logticks() +
+  stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2", bins=15) +
+  scale_fill_continuous() +
+  scale_alpha() +
+  geom_point(col = "black", size = 0.5, pch = 20, alpha = 0.3) + 
+  geom_smooth(method="auto", se = TRUE, col = "red", size = 0.3) +
+  geom_vline(xintercept = mean(cos(snr$Lambda)), lty=2) +
+  stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), label.x.npc = "left", label.y.npc = "top") +
+  labs(y = expression(Logarithmic~SNR~(ln~rho)), x = expression(Cosine~of~Orbital~Inclination~Angle~(iota)), title = "Cosine of Orbital Inclination Angle versus SNR") +
+  theme_classic() +   theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+  p6 <- ggMarginal(plot_center6, type = "histogram", bins = 90, margins = "both", fill= "black", col = "white")
+
+  # Initial Alpha Angle versus SNR
+  plot_center7 = ggplot(snr, aes(y=log(snr$`SNR`),x=snr$InitialAlphaAngle)) +
+  ylim(11, 14.5) +
+  annotation_logticks() +
+  stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2", bins=15) +
+  scale_fill_continuous() +
+  scale_alpha() +
+  geom_point(col = "black", size = 0.5, pch = 20, alpha = 0.3) + 
+  geom_smooth(method="auto", se = TRUE, col = "red", size = 0.3) +
+  geom_vline(xintercept = mean(cos(snr$InitialAlphaAngle)), lty=2) +
+  stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), label.x.npc = "left", label.y.npc = "top") +
+  labs(y =expression(Logarithmic~SNR~(ln~rho)), x = expression(Initial~Azimuthal~Angle~of~Orbital~Angular~Momentum~(alpha[omicron])), title = "Initial Alpha Angle versus SNR") +
+  theme_classic() + theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+  p7 <- ggMarginal(plot_center7, type = "histogram", bins = 90, margins = "both", fill= "black", col = "white")
+
+  # Spin of MBH versus SNR
+  plot_center8 = ggplot(snr, aes(y=log(snr$`SNR`),x=snr$`Spin of MBH`)) + 
+  ylim(11, 14.5) +
+  annotation_logticks() +
+  stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2", bins=15) +
+  scale_fill_continuous() +
+  scale_alpha() +
+  geom_point(col = "black", size = 0.5, pch = 20, alpha = 0.3) +
+  geom_smooth(method="auto", se = TRUE, col = "red", size = 0.3) +
+  geom_vline(xintercept = mean(snr$`Spin of MBH`), lty=2) +
+  stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), label.x.npc = "left", label.y.npc = "top") +
+  labs(y =expression(Logarithmic~SNR~(ln~rho)), x = expression(Spin~of~MBH~(tilde(a))), title = "Spin of MBH versus SNR") +
+  theme_classic() +   theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+  p8 <- ggMarginal(plot_center8, type = "histogram", bins = 90, margins = "both", fill= "black", col="white")
+
+  # Polar Angle of Spin versus SNR
+  plot_center9 = ggplot(snr, aes(y=log(snr$`SNR`),x=cos(snr$`Polar Angle of Spin`)) ) + 
+  ylim(11, 14.5) +
+  annotation_logticks() +
+  stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2", bins=15) +
+  scale_fill_continuous() +
+  scale_alpha() +
+  geom_point(col = "black", size = 0.5, pch = 20, alpha = 0.3) +
+  geom_smooth(method="auto", se = TRUE, col = "red", size = 0.3) +
+  geom_vline(xintercept = mean(cos(snr$`Polar Angle of Spin`)), lty=2) +
+  stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), label.x.npc = "left", label.y.npc = "top") +
+  labs(y =expression(Logarithmic~SNR~(ln~rho)), x = expression((cos)~of~Polar~Angle~of~Spin~(cos~theta[k])), title = "Polar Angle of Spin versus SNR") +
+  theme_classic() +   theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+  p9 <- ggMarginal(plot_center9, type = "histogram", bins = 90, margins = "both", fill= "black", col="white")
+
+  # Azimuthal Angle of Spin versus SNR
+  plot_center10 = ggplot(snr, aes(y=log(snr$`SNR`),x=snr$`Azimuthal Angle of Spin`)) +
+  ylim(11, 14.5) +
+  annotation_logticks() +
+  stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2", bins=15) +
+  scale_fill_continuous() +
+  scale_alpha() +
+  geom_point(col = "black", size = 0.5, pch = 20, alpha = 0.3) +
+  geom_smooth(method="auto", se = TRUE, col = "red", size = 0.3) +
+  geom_vline(xintercept = mean(snr$`Azimuthal Angle of Spin`), lty=2) +
+  stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), label.x.npc = "left", label.y.npc = "top") +
+  labs(y = expression(Logarithmic~SNR~(ln~rho)), x = expression(Azimuthal~Angle~of~Spin~(phi[k])), title = "Azimuthal Angle of Spin versus SNR") +
+  theme_classic() +   theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+  p10 <- ggMarginal(plot_center10, type = "histogram", bins = 90, margins = "both", fill= "black", col="white")
+ 
+  # Griding parametric togather
+  image1 <- plot_grid(p1, p2, p3, p4, p5, p6, labels = c("(a)", "(b)", "(c)", "(d)", "(e)",  "(f)"), ncol=2, nrow=3, scale = c(1, 1, 1, 1, 1, 1))
+  ggsave(image1, device = "png", path = "/home/waqas/MS_Thesis/graduate-thesis/", width = 25, height = 30, units = "in")
+
+  image2 <- plot_grid(p7, p8, p9, p10, p1, p2, labels = c("(g)", "(h)", "(i)", "(j)", "(a)", "(b)"), ncol=2, nrow=3, scale = c(1, 1, 1, 1, 1, 1))
+  ggsave(image2, device = "png", path = "/home/waqas/MS_Thesis/graduate-thesis/", width = 25, height = 30, units = "in")
+
+  ##################################################################
+  #                      Correlation matrix                        #
+  ##################################################################
+
+  # Function for scatter plot & regression
+  my_fn1 <- function(data, mapping){
+  fn1 <- ggplot(data = data, mapping = mapping) + 
+    geom_point( pch = ".", col = "darkgrey") + 
+    geom_smooth(method="auto", se = TRUE, col = "red", size = 0.1)
+  fn1
+  }
+  
+  # Histogram function
+  my_fn2 <- function(data, mapping){
+  fn2 <- ggplot(data = data, mapping = mapping) + 
+    geom_histogram(bins = 35, fill = "black", col = "white")
+  fn2
+  }
+  
+  # Statistical densities
+  my_fn3 <- function(data, mapping){
+  fn3 <- ggplot(data = data, mapping = mapping) + 
+    stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2", bins=15) +
+    scale_fill_continuous() + scale_alpha()
+  fn3
+  }
+  
+  # Data Frame of selected parameters
+  df = data.frame( log(snr$SNR), snr$`Initial Orbital Frequency`, log(snr$`Mass of CO`), snr$Eccentricity, snr$`Initial Tilde Gamma`, snr$`Initial Azimuthal Orbital Phase`, cos(snr$Lambda), 			snr$InitialAlphaAngle, snr$`Spin of MBH`, cos(snr$`Polar Angle of Spin`), snr$`Azimuthal Angle of Spin`)
+  
+  # Matrix Labelling
+  colnames(df) <- c( expression(log(rho)), expression(nu[0]), expression(ln(mu/M['\u0298'])), expression(e[0]), expression(tilde(gamma[0])), expression(Phi[0]), expression(cos(iota)), expression(alpha[0]), 		expression(tilde(a)), expression(cos(theta[K])), expression(phi[K]))
+  
+  # Correlogram
+  image3 <- ggpairs(df,columnLabels = gsub('.', ' ', colnames(df), fixed = T), 
+            labeller = "label_parsed", lower=list(continuous = my_fn1),  diag=list(continuous=my_fn2),  upper=list(continuous=my_fn3),  axisLabels='show') + theme_bw() +   theme(panel.border = 		element_rect(linetype = "solid", colour = "black", fill = NA))
+  print(image3)
+  ggsave(image3, file="image3.jpeg", path = "/home/waqas/MS_Thesis/graduate-thesis/")
+  
+##################################################################
+#               Back-of-Envelop Estimates of SNR                 #  
+##################################################################
+  
+  ##################################################################
+  #                       Mass Normalized SNR                      #
+  ##################################################################
+  
+  # Using vector SNR and CO's mass
+  # (Here mu is in solar mass so, in equation ρ[h] = ρ[h] / (μ/M_{\odot})
+  # as we substitute for mu solar mass of mu cancels with the solar mass in denominator 
+  
+  SNR <- snr$SNR
+  mu <- snr$`Mass of CO`
+  normalized.SNR <- 0
+  
+  # Mass independent SNR
+  for (i in seq_along(SNR)) {
+  normalized.SNR[i] <- (SNR[i]/mu[i])
+  }
+  snr <- cbind(snr, normalized.SNR)
+
+  ##################################################################
+  #   Conversion & plot of Orbital frequency to semi-major axis    #
+  ##################################################################
+
+  # Mass of MBH = M ( in solar mass )
+  M <- snr$`Mass of MBH`
+  
+  # Initial orbital frequency = nu ( in Hz )
+  nu <- snr$`Initial Orbital Frequency`
+  
+  # Speed of light ( in meter/second )
+  c <- 299792458
+  
+  # Gravitational constant ( in meters^(3)/kilogram^(1)*second^(-2) )
+  G <- 6.67408e-11
+  
+  # gravitational radius ( in meters )
+  r.g <- 6.36e9
+  
+  # 1 Solar Mass ( kg )
+  solar.mass <- 1.9891e30
+  
+  a <- 0
+  semi.major.axis <- 0
+
+  for (j in seq_along(M)) {
+  # Mass of MBH ( in kg )
+  M[j] <- (M[j])*(solar.mass) 
+  # semi major axis = a ( in meters )}
+  a[j] <- ((1/(2*pi))^(2/3))*((c/nu[j])^(2/3))*((M[j]/((c^(2))*((G)^(-1))))^(1/3))
+  # semi major axis = a ( in meters )
+  semi.major.axis[j] <- a[j]/r.g
+  }
+  snr <- cbind(snr, semi.major.axis)
+  round(range(semi.major.axis), digits = 2)
+
+  #plot_center = ggplot(snr, aes(x=snr$semi.major.axis, y=log(snr$`SNR`))) + 
+  #ylim(11, 14.5) +  xlim(6, 11.25) +
+  #annotation_logticks() +
+  #stat_density2d(aes(alpha=..level.., fill=..level..), geom="polygon", color = "cyan2", bins=15) +
+  #scale_fill_continuous() +
+  #scale_alpha() + 
+  #geom_point(col = "black", size = 1, pch = 20, alpha = 0.3) +
+  #geom_smooth(method="auto", se = TRUE, col = "red", size = 0.3) +
+  #geom_vline(xintercept = mean(snr$semi.major.axis), lty=2) +
+  #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), label.x.npc = "left", label.y.npc = "top" ) +
+  #labs(y = expression(Logarithmic~SNR~(ln~rho)), x = expression(Semi~major~axis~(over(a, r[g]))), title = "Semi major axis versus SNR")
+  #p <- ggMarginal(plot_center, type = "histogram", bins = 90, margins = "both", fill= "black", col = "white" )
+  #p
+
+  ##################################################################
+  #                   Regression Fit to data                       #
+  ##################################################################
+  
+  head(snr)
+  # Null model -- No variable selected
+  null <- glm(log(normalized.SNR) ~ 1, family=gaussian, data=snr)
+  # Note: The default family is gaussian, meaning linear errors. Just like simple regression by lm() function..
+  summary(null)
+
+  # Full model
+  full <- glm(log(normalized.SNR) ~ (log(snr$semi.major.axis) + log(snr$`Mass of CO`) +  snr$Eccentricity + snr$`Initial Tilde Gamma` + snr$`Initial Azimuthal Orbital Phase` + cos(snr$Lambda) + 		snr$InitialAlphaAngle + snr$`Spin of MBH` + cos(snr$`Polar Angle of Spin`)) ,  family=gaussian, data=snr)
+  summary(full)
+  coefplot(full)
+  
+  # Backward selection method 
+  backwards = step(full)
+  summary(backwards)# You will see only most influential variables. The less influential will be automatically excluded. 
+  formula(backwards) # Gives you the best fit variables
+  
+  # Forward selection method
+  forwards = step(null,scope=list(lower=formula(null),upper=formula(full)),direction="forward")
+  summary(forwards) # You will see only most influential variables. The less influential will be automatically excluded. 
+  formula(forwards) # Gives you the best fit variables
+  
+  # Obtained linear model
+  regression <- lm(log(normalized.SNR) ~ log(snr$semi.major.axis) + snr$Eccentricity + 
+                     cos(snr$Lambda) + snr$`Spin of MBH` + log(snr$`Mass of CO`) + 
+                     snr$InitialAlphaAngle)
+  
+  # To check multicollinearity in predictors we use Variance Inflation Factor (VIF)
+  vif(lm((log(normalized.SNR) ~ log(snr$semi.major.axis) + snr$Eccentricity + 
+            cos(snr$Lambda) + snr$`Spin of MBH` + log(snr$`Mass of CO`) + 
+            snr$InitialAlphaAngle), snr))
+  # Computes confidence intervals
+  confint(regression)
+  
+  # MCMC regression best-fit
+  MCMC <- MCMCregress((log(normalized.SNR) ~ log(snr$semi.major.axis) + snr$Eccentricity + 
+                         cos(snr$Lambda) + snr$`Spin of MBH` + log(snr$`Mass of CO`) + 
+                         snr$InitialAlphaAngle), data = snr, burnin = 1000, mcmc = 10000, thin = 1, b0 = 0, B0 = 0, c0 = 0.001, d0 = 0.001)
+  # Compare the best-fit obtained by step-wise function and MCMC method 
+  summary(regression)
+  round(coef(regression), digits = 2)
+  plot(regression, pch = ".")
+  summary(MCMC)  
+  
+  # Coefficient plot
+  theCI <- coefplot:::buildModelCI(regression)
+  coefplot:::buildPlotting.default(theCI)
+  coefplot(regression)
+  
+  # Computing MLE, AIC & BIC of model
+  logLik(regression)
+  AIC(regression)  
+  BIC(regression)  
+  
+  # Chi-Square test
+  anova(regression, test="Chisq")
+  
+  # Chi-Square value
+  # the standardized residuals
+  z <- (log(snr$normalized.SNR) - regression$fitted.values) /sqrt(regression$fitted.values)
+  # Overdispersion Factor
+  round(sum(z^2) / regression$df.residual,  digits = 3)
+  # Overdispersion p-value
+  pchisq(sum(z^2), regression$df.residual, lower.tail = TRUE)
+  
+  # Best Fit Plot
+  x <- (- 3.70*(log(snr$semi.major.axis)) - 0.06*(log(snr$`Mass of CO`)) + 1.96*(snr$Eccentricity) - 0.05*(cos(snr$Lambda)) + 0.05*(snr$`Spin of MBH`) + 18.61)
+  y <- log(snr$normalized.SNR)
+    ggplot(snr, aes(x=x, y=y)) +
+    xlim(10, 12) +
+    annotation_logticks() +
+    geom_point(col = "black", col = "black", size = 0.1, pch = 20, alpha = 0.5) +
+    geom_smooth(method="glm", col = "red", size = 0.5) + 
+    labs(y = expression(log~(hat(rho))), x = expression(-~3.70~log~(a/r[g])~-~0.06~log~(mu/M['\u0298'])~+~1.96~e[0]~-~0.05~cos~iota~+~0.05~tilde(a)~+~18.61), title = "Back-of-Envelop Estimates of SNR") +
+    theme_classic() +  theme(panel.border = element_rect(linetype = "solid", colour = "black", fill = NA))
+    
+##################################################################
+#Probability distribution of event rates and parameters at plung #
+##################################################################
+    
+  # Histogram of signal to noise ratios
+    par(mfrow=c(2,1))
+  x= c(1e5,3e5,5e5,7e5,9e5,2e6)
+  hist(snr$SNR, xlab =expression(SNR~(rho)),  xlim=c(1e5,2e6), ylab = "Frequency per bin",main="(a)", breaks = 90, xaxt="n", col = "steelblue", border = "white", axes = TRUE, plot = TRUE)
+  axis(1, at=x,labels=format(x, scientific=TRUE))
+  box()
+  
+  # Histogram of Event Rates
+  dis<-rpois(n= 1000, lambda = 1.43)
+  library(psych)
+  SD(x= dis, na.rm = TRUE) 
+  hist(dis, col = "steelblue", xlab ="Events", ylab = "Frequency", main = "(b)", border = "white", axes = TRUE, plot = TRUE)
+  box()
+  
+  ##################################################################       
